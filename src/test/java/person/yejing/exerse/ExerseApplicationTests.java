@@ -1,12 +1,13 @@
 package person.yejing.exerse;
 
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageDeliveryMode;
-import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -19,6 +20,9 @@ class ExerseApplicationTests {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    private AmqpTemplate amqpTemplate;
 
     @Test
     void contextLoads() {
@@ -47,15 +51,25 @@ class ExerseApplicationTests {
                 System.out.println("check the variable");
             }
         });
-
-
-        rabbitTemplate.convertAndSend("srmis.exchange", "a", "yejing222" );
+        // 设置单条消息存活时间
+        MessageProperties messageProperties = new MessageProperties();
+        messageProperties.setExpiration("3000");
+//        messageProperties.getConsumerTag()
+        // 设置延迟，需要Rabbit Server3.6.x+安装并启用delay插件，同时需要设置exchange为x-delayed-message（另：可以通过TTL和死信队列实现）
+        messageProperties.setDelay(2000000);
+        Message message = new Message("yejing11111".getBytes(),messageProperties);
+        rabbitTemplate.convertAndSend("srmis.exchange", "a", message );
     }
 
     @Test
     public void consumer(){
-        Object o= rabbitTemplate.receiveAndConvert("srmis.queue");
-        System.out.println(o);
+        rabbitTemplate.receiveAndReply("srmis.queue", new ReceiveAndReplyCallback<Order, String>(){
+
+            @Override
+            public String handle(Order payload) {
+                return null;
+            }
+        });
     }
 
 }

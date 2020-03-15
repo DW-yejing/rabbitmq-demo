@@ -11,13 +11,13 @@ spring:
     password: guest
     publisher-confirm-type: correlated
     publisher-returns: true
-
-#    listener:
-#      simple:
-#        retry:
-#          # broker未收到确认消息，是否再次向消费者投递消息（默认：false）
-#          enabled: true
-#          max-attempts: 6
-#          # 投递的间隔（单位：ms）
-#          initial-interval: 2000
-
+    listener:
+      simple:
+        # 设置消息手动确认
+        acknowledge-mode: manual
+        retry:
+          # broker未收到确认消息，是否再次向消费者投递消息（默认：false）
+          enabled: true
+          max-attempts: 6
+          # 投递的间隔（单位：ms）
+          initial-interval: 2000
